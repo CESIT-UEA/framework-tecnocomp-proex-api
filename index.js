@@ -69,8 +69,9 @@ const {
 const { options } = require("./routes");
 
 lti.onConnect(async (token, req, res) => {
+   
   try {
-    console.log(token);
+    console.log("Token id abaixo", token);
     const ltik = req.query.ltik;
     let nomeModulo = token.platformContext.resource.title;
 
@@ -113,6 +114,8 @@ const plataforma = async () => {
     return [];
   }
 };
+
+
 
 if (process.env.PRODUCAO_VARIAVEL == "true") {
   https.createServer(sslOptions, lti.app).listen(8002, () => {
