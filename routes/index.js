@@ -1,4 +1,4 @@
-const { Aluno, UsuarioVideo, UsuarioTopico } = require("../models");
+const { Aluno, UsuarioVideo, UsuarioTopico,UsuarioModulo} = require("../models");
 const express = require("express");
 const router = express.Router();
 const gradeService = require("../Services/gradeService");
@@ -9,6 +9,7 @@ const { where } = require("sequelize");
 router.post("/gradein", async (req, res) => {
   try {
     console.log("Grade in");
+    console.log(req.body)
     const idtoken = res.locals.token; // IdToken
     if (!idtoken) {
       return res.status(400).send({ error: "Token inválido" });
@@ -258,5 +259,83 @@ router.post("/finalizaReferencias", async (req, res) => {
       .json({ message: "Erro ao marcar como visto a Referencias do topico" });
   }
 });
+//! Testar
+router.post("/enviar_avaliacao", async (req, res) => {
+  const { id_user_modulo, avaliacao, comentario, ltik } = req.body;
+  console.log(req.body);
+
+  const user = await UsuarioModulo.findOne({ where: { id : id_user_modulo } });
+
+  try {
+    if (user) {
+      await UsuarioModulo.update(
+        { avaliacao: avaliacao, comentario: comentario },
+        { where: { id : id_user_modulo } }
+      );
+  
+      const dados_user_atualizado = await userService.getDadosUser(ltik);
+  
+      return res.status(200).json(dados_user_atualizado);
+    }else{
+      return res.json({error:"Falha ao encontrar o UsuarioModulo Id"});
+    }
+
+  } catch (error) {
+    console.error("Erro ao tentar salvar a nota de avaliação do modulo:", error);
+    return res
+      .status(500)
+      .json({ message: `Erro ao tentar salvar a nota de avaliação do modulo: ${error}`});
+  }
+});
+
+router.post("/api/salvarAvaliacaoIA", async (req, res) => {
+  console.log("Entrei no salvarAvaliacaoIA");
+
+  try {
+    const {
+      idTopico,
+      token,
+      respostaAluno,
+      nota,
+      justificativa,
+      teto,
+    } = req.body;
+
+    const aluno = await Aluno.findOne({ where: { ltik: token } });
+
+    if (!aluno) {
+      return res.status(404).json({ message: "Aluno não encontrado" });
+    }
+
+    const userTopico = await UsuarioTopico.findOne({
+      where: {
+        id_aluno: aluno.id_aluno,
+        id_topico: idTopico,
+      },
+    });
+
+    if (!userTopico) {
+      return res
+        .status(404)
+        .json({ message: "Relação aluno-topico não encontrada" });
+    }
+
+    await userTopico.update({
+      resposta_aberta_aluno: respostaAluno,
+      resposta_aberta_nota_IA: nota,
+      resposta_aberta_justificativa_IA: justificativa,
+      resposta_aberta_teto: teto,
+      encerrado: 1,
+    });
+
+    // Atualiza e retorna o usuário com progresso atualizado
+    const dados_user_atualizado = await userService.getDadosUser(token);
+    return res.status(200).json(dados_user_atualizado);
+  } catch (error) {
+    console.log("Erro ao salvar avaliação IA: ", error);
+    res.status(500).json({ message: "Erro ao salvar avaliação da IA" });
+  }
+});
+
 
 module.exports = router;

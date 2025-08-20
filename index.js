@@ -41,7 +41,12 @@ if (process.env.PRODUCAO_VARIAVEL == "true") {
   sslOptions = {
     key: fs.readFileSync("/certs/uea.edu.br.key"),
     cert: fs.readFileSync("/certs/uea.edu.br.fullchain.crt"),
-  };
+  }; 
+  
+  /* sslOptions = {
+    key: fs.readFileSync("/certs/privkey.pem"),
+    cert: fs.readFileSync("/certs/fullchain.pem"),
+  }; */
 }
 
 lti.setup(
@@ -74,12 +79,13 @@ lti.onConnect(async (token, req, res) => {
     console.log("Token id abaixo", token);
     const ltik = req.query.ltik;
     let nomeModulo = token.platformContext.resource.title;
+    let uuid = token.platformContext.custom.uuid;
 
     const plataforma = await PlataformaRegistro.findOne({
-      where: { plataformaUrl: token.iss },
+      where: { idCliente: token.clientId },
     });
 
-    const modulo = await Modulo.findOne({ where: { nome_modulo: nomeModulo } });
+    const modulo = await Modulo.findOne({ where: { uuid: uuid } });
     console.log(plataforma);
     if (modulo) {
       const user = await Aluno.findOne({
@@ -94,7 +100,7 @@ lti.onConnect(async (token, req, res) => {
       res.redirect(`${urlFront}/modulo/${modulo.nome_url}?ltik=${ltik}`);
     } else {
       res.redirect(`${urlFront}/error404`);
-      console.log("Modulo não existe");
+      console.log("Modulo não existe ou não encontrado");
     }
   } catch (error) {
     console.error("Erro na conexão LTI:", error);
