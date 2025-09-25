@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },
-      criterios: {
+      resposta_esperada: {
         type: DataTypes.TEXT,
       },
     },
