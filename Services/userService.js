@@ -143,4 +143,19 @@ async function getDadosUser(ltik) {
   }
 }
 
-module.exports = { getDadosUser };
+
+async function getUserByLtik(ltik){
+  try {
+    if (!ltik) throw new Error("Parâmetro ltik é obrigatório");
+
+    const user = await Aluno.findOne({ where: { ltik } });
+    if (!user) throw new Error("Usuário não encontrado");
+
+    return user;
+  } catch (err) {
+    console.error("Erro buscar usuário por ltik", err.message);
+    throw err; 
+  }
+}
+
+module.exports = { getDadosUser, getUserByLtik };

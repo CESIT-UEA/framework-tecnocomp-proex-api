@@ -4,6 +4,7 @@ const router = express.Router();
 const gradeService = require("../Services/gradeService");
 const userService = require("../Services/userService");
 const videosService = require("../Services/videosService");
+const moduloService = require("../Services/moduloService");
 const { where } = require("sequelize");
 
 router.post("/gradein", async (req, res) => {
@@ -103,6 +104,20 @@ router.get("/userInfo", async (req, res) => {
     return res.status(500).json({ error: "Erro interno do servidor" });
   }
 });
+
+router.get("/moduloInfo", async (req, res) => {
+  try {
+    const ltik = res.locals.ltik;
+    let dados_modulo = await moduloService.getInfoModuloWithUser(ltik);
+    if (dados_modulo == null){
+      return res.status(500).json("Erro ao puxar os dados do módulo");
+    }
+    return res.status(200).json(dados_modulo);
+  } catch (err) {
+    console.error("Erro ao obter informações do módulo:", err);
+    return res.status(500).json({ error: "Erro interno do servidor" });
+  }
+})
 
 router.post("/finalizar-video", async (req, res) => {
   const { ltiUserId, videoId, ltik } = req.body;
