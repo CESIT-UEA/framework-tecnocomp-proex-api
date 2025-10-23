@@ -5,6 +5,7 @@ const gradeService = require("../Services/gradeService");
 const userService = require("../Services/userService");
 const videosService = require("../Services/videosService");
 const moduloService = require("../Services/moduloService");
+const topicoService = require("../Services/topicoService");
 const { where } = require("sequelize");
 
 router.post("/gradein", async (req, res) => {
@@ -115,6 +116,21 @@ router.get("/moduloInfo", async (req, res) => {
     return res.status(200).json(dados_modulo);
   } catch (err) {
     console.error("Erro ao obter informações do módulo:", err);
+    return res.status(500).json({ error: "Erro interno do servidor" });
+  }
+})
+
+router.get("/userTopicoInfo", async (req, res) => {
+  try {
+    console.log('aqui começa a requisição ',req)
+    const ltik = res.locals.ltik;
+    const id_modulo = req.query.id_modulo;
+    const id_aluno = req.query.id_aluno;
+    let userTopico = await topicoService.getUserTopico(id_modulo, id_aluno, ltik);
+    console.log(userTopico)
+    return res.status(200).json(userTopico);
+  } catch (error) {
+    console.log('Erro ao buscar dados userTópico', error)
     return res.status(500).json({ error: "Erro interno do servidor" });
   }
 })
