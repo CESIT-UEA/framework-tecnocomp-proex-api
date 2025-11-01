@@ -127,7 +127,7 @@ router.get("/userTopicoInfo", async (req, res) => {
     const id_modulo = req.query.id_modulo;
     const id_aluno = req.query.id_aluno;
     let userTopico = await topicoService.getUserTopico(id_modulo, id_aluno, ltik);
-    console.log(userTopico)
+  
     return res.status(200).json(userTopico);
   } catch (error) {
     console.log('Erro ao buscar dados userTópico', error)
@@ -223,7 +223,7 @@ router.post("/resposta-errada-refazer", async (req, res) => {
 });
 
 router.post("/finalizaSaibaMais", async (req, res) => {
-  const { idTopico, ltik } = req.body;
+  const { idTopico, ltik, id_modulo } = req.body;
   console.log(req.body);
   const user = await Aluno.findOne({ where: { ltik } });
 
@@ -233,9 +233,9 @@ router.post("/finalizaSaibaMais", async (req, res) => {
       { where: { id_aluno: user.id_aluno, id_topico: idTopico } }
     );
 
-    const dados_user_atualizado = await userService.getDadosUser(ltik);
-
-    return res.status(200).json(dados_user_atualizado);
+     let userTopico = await topicoService.getUserTopico(id_modulo, user.id_aluno, ltik);
+  
+    return res.status(200).json(userTopico);
   } catch (error) {
     console.error("Erro ao marcar como visto o saiba mais do topico:", error);
     return res
@@ -245,7 +245,7 @@ router.post("/finalizaSaibaMais", async (req, res) => {
 });
 
 router.post("/finalizaTextoApoio", async (req, res) => {
-  const { idTopico, ltik } = req.body;
+  const { idTopico, ltik, id_modulo } = req.body;
   console.log(req.body);
   const user = await Aluno.findOne({ where: { ltik } });
 
@@ -255,9 +255,9 @@ router.post("/finalizaTextoApoio", async (req, res) => {
       { where: { id_aluno: user.id_aluno, id_topico: idTopico } }
     );
 
-    const dados_user_atualizado = await userService.getDadosUser(ltik);
-
-    return res.status(200).json(dados_user_atualizado);
+    let userTopico = await topicoService.getUserTopico(id_modulo, user.id_aluno, ltik);
+  
+    return res.status(200).json(userTopico);
   } catch (error) {
     console.error(
       "Erro ao marcar como visto o Texto de apoio do topico:",
@@ -270,7 +270,7 @@ router.post("/finalizaTextoApoio", async (req, res) => {
 });
 
 router.post("/finalizaReferencias", async (req, res) => {
-  const { idTopico, ltik } = req.body;
+  const { idTopico, ltik, id_modulo } = req.body;
   console.log(req.body);
   const user = await Aluno.findOne({ where: { ltik } });
 
@@ -280,9 +280,9 @@ router.post("/finalizaReferencias", async (req, res) => {
       { where: { id_aluno: user.id_aluno, id_topico: idTopico } }
     );
 
-    const dados_user_atualizado = await userService.getDadosUser(ltik);
-
-    return res.status(200).json(dados_user_atualizado);
+    let userTopico = await topicoService.getUserTopico(id_modulo, user.id_aluno, ltik);
+  
+    return res.status(200).json(userTopico);
   } catch (error) {
     console.error("Erro ao marcar como visto a Referencias do topico:", error);
     return res
@@ -367,6 +367,19 @@ router.post("/api/salvarAvaliacaoIA", async (req, res) => {
     res.status(500).json({ message: "Erro ao salvar avaliação da IA" });
   }
 });
+
+
+router.get("/videosUrl", async (req, res)=> {
+  try {
+    const ltik = res.locals.ltik;
+    const id_modulo = req.query.id_modulo;
+    const videosUrl = await videosService.getVideosUrlsByIdModulo(id_modulo, ltik);
+    return res.status(200).json(videosUrl)
+  } catch (error) {
+    console.error("Erro ao buscar videos do tópico!", error)
+    return res.status(500).json({ message: "Erro interno no servidor"})
+  }
+})
 
 
 module.exports = router;

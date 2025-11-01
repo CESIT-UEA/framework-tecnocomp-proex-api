@@ -1,5 +1,6 @@
 const {
   UsuarioModulo,
+  UsuarioVideo,
   Modulo,
   Topico,
   UsuarioTopico,
@@ -12,6 +13,8 @@ const {
 } = require("../models");
 const { where } = require("sequelize");
 const lti = require("ltijs").Provider;
+const topicoService = require('../Services/topicoService');
+const topico = require("../models/topico");
 
 async function liberarProximoVideo(id_topico, ltik) {
   const user = await Aluno.findOne({ where: { ltik: ltik } });
@@ -30,4 +33,34 @@ async function liberarProximoVideo(id_topico, ltik) {
   }
 }
 
-module.exports = { liberarProximoVideo };
+async function getVideosUrlsByIdModulo(id_modulo, ltik){
+  try {
+    if (!id_modulo || !ltik) throw new Error('Parâmetros obrigatórios não passados!')
+      
+    const user = await Aluno.findOne({ where: { ltik }})
+
+    const topicos = await Topico.findAll({
+    where: { id_modulo: id_modulo }, 
+    include: [
+      {
+        model: VideoUrls,
+        required: true,
+        include: [
+          {
+            model: UsuarioVideo,
+            where: { id_aluno: user.id_aluno },
+            required: false
+          }
+        ]
+      }
+    ]
+  })
+
+    return topicos
+
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+module.exports = { liberarProximoVideo, getVideosUrlsByIdModulo };
