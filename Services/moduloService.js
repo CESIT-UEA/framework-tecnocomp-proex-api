@@ -17,7 +17,7 @@ async function getInfoModuloWithUser(ltik){
             modulo: modulo.dataValues,
             userModulo: userModulo.dataValues
         }
-        console.log("passou aqui", dados_modulo)
+        
         return dados_modulo
     } catch (err) {
         console.error("Erro ao buscar informações do módulo com usuário", err.message);
@@ -47,7 +47,7 @@ async function verificaModuloAtivoByUser(user){
         }
 
         const userModulo = await UsuarioModulo.findOne({
-          where: { id_aluno: user.id_aluno, ativo: true },
+          where: { id_aluno: user.id_aluno, ativo: true }
         });
         if (!userModulo) throw new Error("Módulo ativo não encontrado");
 

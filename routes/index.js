@@ -6,7 +6,10 @@ const userService = require("../Services/userService");
 const videosService = require("../Services/videosService");
 const moduloService = require("../Services/moduloService");
 const topicoService = require("../Services/topicoService");
+const saibaMaisService = require("../Services/saibaMaisService");
 const { where } = require("sequelize");
+const { getInfoTopicos } = require("../Services/topicoService")
+const referenciasService = require("../Services/referenciasService")
 
 router.post("/gradein", async (req, res) => {
   try {
@@ -120,17 +123,32 @@ router.get("/moduloInfo", async (req, res) => {
   }
 })
 
-router.get("/userTopicoInfo", async (req, res) => {
+router.get("/topicosInfo", async (req, res)=> {
   try {
-    console.log('aqui começa a requisição ',req)
     const ltik = res.locals.ltik;
     const id_modulo = req.query.id_modulo;
     const id_aluno = req.query.id_aluno;
-    let userTopico = await topicoService.getUserTopico(id_modulo, id_aluno, ltik);
+
+    const infoTopicos = await getInfoTopicos(id_modulo, id_aluno, ltik)
+    return res.status(200).json(infoTopicos);
+
+  } catch (error) {
+    console.error('Erro ao buscar informações do tópico', error)
+     return res.status(500).json({ error: "Erro interno do servidor" });
+  }
+} )
+
+router.get("/userTopicoInfo", async (req, res) => {
+  try {
+    const ltik = res.locals.ltik;
+    const id_modulo = req.query.id_modulo;
+    const id_aluno = req.query.id_aluno;
+    const control_topico = req.query.topico;
+    let userTopico = await topicoService.getUserTopico(id_modulo, id_aluno, ltik, control_topico);
   
     return res.status(200).json(userTopico);
   } catch (error) {
-    console.log('Erro ao buscar dados userTópico', error)
+    console.error('Erro ao buscar dados userTópico', error)
     return res.status(500).json({ error: "Erro interno do servidor" });
   }
 })
@@ -380,6 +398,31 @@ router.get("/videosUrl", async (req, res)=> {
     return res.status(500).json({ message: "Erro interno no servidor"})
   }
 })
+
+router.get("/saibaMais", async (req, res)=> {
+  try {
+    const ltik = res.locals.ltik;
+    const id_topico = req.query.id_topico;
+    const saibaMais = await saibaMaisService.getSaibaMais(ltik, id_topico);
+    return res.status(200).json(saibaMais)
+  } catch (error) {
+    console.error("Erro ao buscar saiba mais do tópico!", error)
+    return res.status(500).json({ message: "Erro interno no servidor"})
+  }
+})
+
+
+router.get("/referencias", async (req, res)=> {
+  try {
+    const ltik = res.locals.ltik;
+    const referencias = await referenciasService.getReferencias(ltik)
+    return res.status(200).json(referencias)
+  } catch (error) {
+    console.error("Erro ao buscar referencias!", error)
+    return res.status(500).json({ message: "Erro interno no servidor"})
+  }
+})
+
 
 
 module.exports = router;
