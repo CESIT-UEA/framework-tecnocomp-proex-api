@@ -157,6 +157,42 @@ lti.app.post('/lti/register-platform', validarApiKey, async (req, res) => {
 });
 
 
+lti.whitelist('/lti/remove-platform');
+lti.app.delete('/lti/remove-platform', validarApiKey, async (req, res) => {
+  try {
+    const { plataformaUrl, idCliente } = req.body;
+
+    if (!plataformaUrl || !idCliente) {
+      return res.status(400).json({ message: 'Dados incompletos' });
+    }
+
+    const plat = await lti.getPlatform(plataformaUrl, idCliente);
+
+    if (!plat) {
+      return res.status(404).json({
+        message: 'Plataforma não encontrada'
+      });
+    }
+  
+    // Remove a plataforma
+    await lti.deletePlatform(plataformaUrl, idCliente);
+
+    console.log(`Plataforma removida: ${plataformaUrl}`);
+
+    return res.status(200).json({
+      message: 'Plataforma removida com sucesso'
+    });
+
+  } catch (error) {
+    console.error('Erro ao remover plataforma:', error);
+
+    return res.status(500).json({
+      message: 'Erro interno ao remover plataforma'
+    });
+  }
+});
+
+
 lti.app.use("/", require("./routes"));
 const plataforma = async () => {
   try {
