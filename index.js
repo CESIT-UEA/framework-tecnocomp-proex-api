@@ -7,6 +7,7 @@ const LtiSequelize = require("ltijs-sequelize");
 const lti = require("ltijs").Provider;
 const cors = require("cors");
 const usuarioService = require("./Services/usuarioService");
+const { validarApiKey } = require('./middleware/apiKey.middleware');
 const app = express();
 app.use(express.json());
 
@@ -48,6 +49,8 @@ if (process.env.PRODUCAO_VARIAVEL == "true") {
     cert: fs.readFileSync("/certs/fullchain.pem"),
   }; */
 }
+
+app.set('trust proxy', true);
 
 lti.setup(
   process.env.LTI_KEY,
@@ -108,6 +111,52 @@ lti.onConnect(async (token, req, res) => {
   }
 });
 
+
+lti.whitelist('/lti/register-platform');
+lti.app.post('/lti/register-platform', validarApiKey, async (req, res) => {
+  try {
+    const { plataformaUrl, plataformaNome, idCliente } = req.body;
+    
+    if (!plataformaUrl || !plataformaNome || !idCliente) {
+      return res.status(400).json({ message: 'Dados incompletos' });
+    }
+
+    const plat = await lti.getPlatform(plataformaUrl, idCliente);
+
+    if (plat) {
+      return res.status(200).json({
+        message: 'Plataforma já registrada'
+      });
+    }
+
+    await lti.registerPlatform({
+      url: plataformaUrl,
+      name: plataformaNome,
+      clientId: idCliente,
+      authenticationEndpoint: `${plataformaUrl}/mod/lti/auth.php`,
+      accesstokenEndpoint: `${plataformaUrl}/mod/lti/token.php`,
+      authConfig: {
+        method: "JWK_SET",
+        key: `${plataformaUrl}/mod/lti/certs.php`,
+      },
+    });
+
+    console.log(`Plataforma registrada: ${plataformaNome}`);
+
+    return res.status(201).json({
+      message: 'Plataforma registrada com sucesso'
+    });
+
+  } catch (error) {
+    console.error('Erro ao registrar plataforma:', error);
+
+    return res.status(500).json({
+      message: 'Erro interno ao registrar plataforma'
+    });
+  }
+});
+
+
 lti.app.use("/", require("./routes"));
 const plataforma = async () => {
   try {
@@ -123,11 +172,10 @@ const plataforma = async () => {
 
 
 
-if (process.env.PRODUCAO_VARIAVEL == "true") {
-  https.createServer(sslOptions, lti.app).listen(8002, () => {
-    console.log("Servidor HTTPS rodando na porta 8002");
-  });
-}
+const PORT = process.env.PORT || 3000;
+  lti.app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});
 // Função de setup
 const setup = async () => {
   try {
@@ -135,29 +183,31 @@ const setup = async () => {
 
     // Registro das plataformas
     const registerPlataforma = await plataforma();
+    console.log('Plataformas', registerPlataforma)
 
-    for (let platform of registerPlataforma) {
-      const { plataformaUrl, plataformaNome, idCliente } = platform.dataValues;
-      if (plataformaUrl && plataformaNome && idCliente) {
-        await lti.registerPlatform({
-          url: plataformaUrl,
-          name: plataformaNome,
-          clientId: idCliente,
-          authenticationEndpoint: `${plataformaUrl}/mod/lti/auth.php`,
-          accesstokenEndpoint: `${plataformaUrl}/mod/lti/token.php`,
-          authConfig: {
-            method: "JWK_SET",
-            key: `${plataformaUrl}/mod/lti/certs.php`,
-          },
-        });
-        console.log(`Plataforma registrada: ${plataformaNome}`);
-      } else {
-        console.warn(`Dados incompletos para a plataforma: ${platform}`);
-      }
-    }
+    // for (let platform of registerPlataforma) {
+    //   const { plataformaUrl, plataformaNome, idCliente } = platform.dataValues;
+    //   if (plataformaUrl && plataformaNome && idCliente) {
+    //     await lti.registerPlatform({
+    //       url: plataformaUrl,
+    //       name: plataformaNome,
+    //       clientId: idCliente,
+    //       authenticationEndpoint: `${plataformaUrl}/mod/lti/auth.php`,
+    //       accesstokenEndpoint: `${plataformaUrl}/mod/lti/token.php`,
+    //       authConfig: {
+    //         method: "JWK_SET",
+    //         key: `${plataformaUrl}/mod/lti/certs.php`,
+    //       },
+    //     });
+    //     console.log(`Plataforma registrada: ${plataformaNome}`);
+    //   } else {
+    //     console.warn(`Dados incompletos para a plataforma: ${platform}`);
+    //   }
+    // }
   } catch (error) {
     console.error("Erro durante o setup:", error);
   }
 };
+
 
 setup();

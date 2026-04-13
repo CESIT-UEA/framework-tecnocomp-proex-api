@@ -35,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
       }
     }, {
-      tableName: 'UsuarioModulo',
+      tableName: 'usuarioModulo',
       timestamps: false,
     });
     return UsuarioModulo;

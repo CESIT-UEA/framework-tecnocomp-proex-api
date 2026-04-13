@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
       },
     }, {
-      tableName: 'VideoUrls',
+      tableName: 'videoUrls',
       timestamps: false,
     });
     return VideoUrls;

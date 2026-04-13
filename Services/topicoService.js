@@ -7,8 +7,14 @@ const {
 
 async function getUserTopico(id_modulo, id_aluno, ltik, control_topico){
     try {
+      console.log("id_modulo", id_modulo)
+      console.log("id_topico", id_aluno)
+      console.log("ltik", ltik)
       if (!id_modulo || !id_aluno || !ltik) throw new Error(' Parâmetros obrigatórios ausentes!')
-      const query = control_topico || 1;
+    
+      const page = Number(control_topico) || 1;
+      const limit = 1; // apenas um item por página
+      const offset = (page - 1) * limit;
     
       const userTopico = await Topico.findAll({
         include: [
@@ -30,6 +36,9 @@ async function getUserTopico(id_modulo, id_aluno, ltik, control_topico){
         where: {
           id_modulo: id_modulo,
         },
+        limit,
+        offset,
+        subQuery: false
       });
       if (!userTopico) throw new Error('Erro ao buscar informações do usuários tópico pelo id do módulo');
       return userTopico

@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
       },
     }, {
-      tableName: 'Referencias',
+      tableName: 'referencias',
       timestamps: false,
     });
     return Referencias;

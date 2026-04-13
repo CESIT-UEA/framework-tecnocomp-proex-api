@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
       }
     }, {
-      tableName: 'Topicos',
+      tableName: 'topicos',
       timestamps: false,
     });
     return Topico;

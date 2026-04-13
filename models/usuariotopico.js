@@ -52,7 +52,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
       }
     }, {
-      tableName: 'UsuarioTopico',
+      tableName: 'usuariotopico',
       timestamps: false,
     });
     return UsuarioTopico;
