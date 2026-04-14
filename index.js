@@ -42,8 +42,8 @@ if (process.env.PRODUCAO_VARIAVEL == "true") {
   sslOptions = {
     key: fs.readFileSync("/certs/uea.edu.br.key"),
     cert: fs.readFileSync("/certs/uea.edu.br.fullchain.crt"),
-  }; 
-  
+  };
+
   /* sslOptions = {
     key: fs.readFileSync("/certs/privkey.pem"),
     cert: fs.readFileSync("/certs/fullchain.pem"),
@@ -75,9 +75,10 @@ const {
   Aluno,
 } = require("./models");
 const { options } = require("./routes");
+const { platform } = require("os");
 
 lti.onConnect(async (token, req, res) => {
-   
+
   try {
     console.log("Token id abaixo", token);
     const ltik = req.query.ltik;
@@ -116,7 +117,7 @@ lti.whitelist('/lti/register-platform');
 lti.app.post('/lti/register-platform', validarApiKey, async (req, res) => {
   try {
     const { plataformaUrl, plataformaNome, idCliente } = req.body;
-    
+
     if (!plataformaUrl || !plataformaNome || !idCliente) {
       return res.status(400).json({ message: 'Dados incompletos' });
     }
@@ -162,6 +163,7 @@ lti.app.delete('/lti/remove-platform', validarApiKey, async (req, res) => {
   try {
     const { plataformaUrl, idCliente } = req.body;
 
+    
     if (!plataformaUrl || !idCliente) {
       return res.status(400).json({ message: 'Dados incompletos' });
     }
@@ -173,7 +175,8 @@ lti.app.delete('/lti/remove-platform', validarApiKey, async (req, res) => {
         message: 'Plataforma não encontrada'
       });
     }
-  
+
+
     // Remove a plataforma
     await lti.deletePlatform(plataformaUrl, idCliente);
 
@@ -188,6 +191,49 @@ lti.app.delete('/lti/remove-platform', validarApiKey, async (req, res) => {
 
     return res.status(500).json({
       message: 'Erro interno ao remover plataforma'
+    });
+  }
+});
+
+
+lti.whitelist('/lti/update-platform');
+lti.app.put('/lti/update-platform', validarApiKey, async (req, res) => {
+  try {
+    const { plataformaUrl, idCliente, novosDados } = req.body;
+    
+    if (!plataformaUrl || !idCliente || !novosDados) {
+      return res.status(400).json({ message: 'Dados incompletos' });
+    }
+
+    const plat = await lti.getPlatform(plataformaUrl, idCliente);
+    
+    if (!plat) {
+      return res.status(404).json({
+        message: 'Plataforma não encontrada'
+      });
+    }
+
+    const platformId = await plat.platformId();
+
+    const dadosTratados = {
+      name: novosDados.plataformaNome || plat.platformName(),
+      url: novosDados.plataformaUrl || plat.platformUrl(),
+      clientId: novosDados.idCliente || plat.platformClientId()
+    };
+
+    await lti.updatePlatformById(platformId, dadosTratados);
+
+    console.log(`Plataforma atualizada: ${plataformaUrl}`);
+    
+    return res.status(200).json({
+      message: 'Plataforma atualizada com sucesso'
+    });
+
+  } catch (error) {
+    console.error('Erro ao atualizar plataforma:', error);
+
+    return res.status(500).json({
+      message: 'Erro interno ao atualizar plataforma'
     });
   }
 });
@@ -209,7 +255,7 @@ const plataforma = async () => {
 
 
 const PORT = process.env.PORT || 3000;
-  lti.app.listen(PORT, '0.0.0.0', () => {
+lti.app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
 // Função de setup
