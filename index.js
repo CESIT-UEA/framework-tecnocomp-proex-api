@@ -44,10 +44,6 @@ if (process.env.PRODUCAO_VARIAVEL == "true") {
     cert: fs.readFileSync("/certs/uea.edu.br.fullchain.crt"),
   };
 
-  /* sslOptions = {
-    key: fs.readFileSync("/certs/privkey.pem"),
-    cert: fs.readFileSync("/certs/fullchain.pem"),
-  }; */
 }
 
 app.set('trust proxy', true);
@@ -58,6 +54,12 @@ lti.setup(
   {
     cookies: { secure: false, sameSite: "" },
     devMode: true,
+    dynReg: {
+      url: process.env.BACK_LTI,
+      name: process.env.NOME_FERRAMENTA,
+      redirectUris: [ process.env.BACK_LTI ],
+      autoActivate: true
+    }
   }
 );
 urlFront = process.env.CORS_ORIGIN;
