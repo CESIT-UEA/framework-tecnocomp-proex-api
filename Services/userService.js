@@ -18,6 +18,7 @@ const {
   Equipe,
 } = require("../models");
 const { where, Op, fn, col } = require("sequelize");
+const { montarUrlArquivo } = require("../utils/montarUrl");
 
 const lti = require("ltijs").Provider;
 
@@ -85,6 +86,8 @@ async function getDadosUser(ltik) {
     });
 
     if (!modulo) throw new Error("Módulo não encontrado");
+
+    modulo.ebookUrlGeral = montarUrlArquivo(modulo.ebookUrlGeral)
 
     const userTopico = await Topico.findAll({
       include: [

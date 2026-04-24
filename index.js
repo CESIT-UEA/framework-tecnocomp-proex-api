@@ -80,16 +80,35 @@ const { options } = require("./routes");
 const { platform } = require("os");
 
 lti.onConnect(async (token, req, res) => {
-
   try {
     console.log("Token id abaixo", token);
     const ltik = req.query.ltik;
     let nomeModulo = token.platformContext.resource.title;
     let uuid = token.platformContext.custom.uuid;
 
-    const plataforma = await PlataformaRegistro.findOne({
-      where: { idCliente: token.clientId },
+    if (!uuid){
+      return res.status(404).json({ error: 'Módulo não encontrado. Verifique o uuid do módulo!' });
+    }
+
+    let plataforma = await PlataformaRegistro.findOne({
+      where: { idCliente: token.clientId, plataformaUrl: token.iss },
     });
+
+    if (!plataforma){
+      const plataformaLti = await lti.getPlatform(token.iss, token.clientId);
+
+      if (!plataformaLti){
+        return res.status(403).json({ error: 'Plataforma Inválida' })
+      }
+
+      plataforma = await PlataformaRegistro.create({
+        plataformaUrl: token.iss, 
+        plataformaNome: process.env.NOME_FERRAMENTA, 
+        idCliente: token.clientId,
+        usuario_id: null,
+      })
+
+    }
 
     const modulo = await Modulo.findOne({ where: { uuid: uuid } });
     console.log(plataforma);
