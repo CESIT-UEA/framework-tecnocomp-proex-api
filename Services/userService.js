@@ -89,6 +89,12 @@ async function getDadosUser(ltik) {
 
     modulo.ebookUrlGeral = montarUrlArquivo(modulo.ebookUrlGeral)
 
+    modulo.Topicos.forEach(topico => {
+    if (topico.ebookUrlGeral) {
+      topico.ebookUrlGeral = montarUrlArquivo(topico.ebookUrlGeral);
+    }
+    });
+
     const userTopico = await Topico.findAll({
       include: [
         {
