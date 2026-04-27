@@ -81,7 +81,6 @@ const { platform } = require("os");
 
 lti.onConnect(async (token, req, res) => {
   try {
-    console.log("Token id abaixo", token);
     const ltik = req.query.ltik;
     let nomeModulo = token.platformContext.resource.title;
     let uuid = token.platformContext.custom.uuid;
@@ -110,8 +109,7 @@ lti.onConnect(async (token, req, res) => {
 
     }
 
-    const modulo = await Modulo.findOne({ where: { uuid: uuid } });
-    console.log(plataforma);
+    const modulo = await Modulo.findOne({ where: { uuid: uuid, publicado: true } });
     if (modulo) {
       const user = await Aluno.findOne({
         where: { ltiUserId: token.user, id_plataforma: plataforma.id },
@@ -124,8 +122,8 @@ lti.onConnect(async (token, req, res) => {
       console.log(`${urlFront}/modulo/${modulo.nome_url}?ltik=${ltik}`);
       res.redirect(`${urlFront}/modulo/${modulo.nome_url}?ltik=${ltik}`);
     } else {
-      res.redirect(`${urlFront}/error404`);
       console.log("Modulo não existe ou não encontrado");
+      return res.status(404).json({ error: 'Modulo não existe ou não encontrado. verifique se o módulo está publicado!' });
     }
   } catch (error) {
     console.error("Erro na conexão LTI:", error);
