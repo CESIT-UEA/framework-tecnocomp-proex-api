@@ -38,6 +38,7 @@ const db = new LtiSequelize(
 
 let sslOptions;
 
+
 if (process.env.PRODUCAO_VARIAVEL == "true") {
   sslOptions = {
     key: fs.readFileSync("/certs/uea.edu.br.key"),
